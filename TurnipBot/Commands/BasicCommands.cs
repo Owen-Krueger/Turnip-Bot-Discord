@@ -12,7 +12,7 @@ namespace TurnipBot.Commands
     {
         /* Commands in DSharpPlus.CommandsNext are identified by supplying a Command attribute to a method in any class you've loaded into it. */
         /* The description is just a string supplied when you use the help command included in CommandsNext. */
-        [Command("alive")]
+        //[Command("alive")]
         [Description("Simple command to test if the bot is running!")]
         public async Task Alive(CommandContext ctx)
         {

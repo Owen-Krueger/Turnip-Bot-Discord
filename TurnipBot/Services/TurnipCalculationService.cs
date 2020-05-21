@@ -136,7 +136,8 @@ namespace TurnipBot.Services
         private void EnsureTableIsClear()
         {
             UpdateWeekNum();
-            if (_turnipRepository.GetAllTurnipsTableEntries().First().WeekNum != _weekNum) //New week has started and we must clean out the table
+            TurnipInfo firstEntry = _turnipRepository.GetAllTurnipsTableEntries().FirstOrDefault();
+            if (firstEntry != null && firstEntry.WeekNum != _weekNum) //New week has started and we must clean out the table
             {
                 _turnipRepository.DeleteAllTurnipTableEntries(); //Delete all entries for a new week
             }

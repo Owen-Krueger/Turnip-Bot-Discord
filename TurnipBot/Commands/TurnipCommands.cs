@@ -1,5 +1,6 @@
 ﻿using DSharpPlus.CommandsNext;
 using DSharpPlus.CommandsNext.Attributes;
+using DSharpPlus.Interactivity;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -38,6 +39,7 @@ namespace TurnipBot.Commands
         }
 
         [Command("sell")]
+        [Description("Add sell price for right now")]
         public async Task Sell(CommandContext ctx)
         {
             await ctx.TriggerTypingAsync();
@@ -74,6 +76,7 @@ namespace TurnipBot.Commands
         }
 
         [Command("buy")]
+        [Description("Adds or updates the turnip purchasing price from Sunday")]
         public async Task BuyPrice(CommandContext ctx)
         {
             await ctx.TriggerTypingAsync();
@@ -94,6 +97,7 @@ namespace TurnipBot.Commands
         }
 
         [Command("pattern")]
+        [Description("Set the pattern from last week's turnip sales. Defaults to 'Unknown'")]
         public async Task Pattern(CommandContext ctx)
         {
             await ctx.TriggerTypingAsync();
@@ -109,6 +113,7 @@ namespace TurnipBot.Commands
         }
 
         [Command("first")]
+        [Description("Add or remove the 'first time' flag for the prediction")]
         public async Task FirstTime(CommandContext ctx)
         {
             await ctx.TriggerTypingAsync();
@@ -123,6 +128,32 @@ namespace TurnipBot.Commands
             else
             {
                 response = "Could not record the first time flag. It's probably Owen's fault.";
+            }
+
+            await ctx.RespondAsync(response);
+        }
+
+        [Command("delete")]
+        [Description("Delete everything from the turnips table")]
+        public async Task Delete(CommandContext ctx)
+        {
+            await ctx.TriggerTypingAsync();
+            string response;
+
+            await ctx.RespondAsync("Are you sure you want to delete everything in the turnips table?");
+
+            var interactivityModule = ctx.Client.GetInteractivityModule();
+
+            var message = await interactivityModule.WaitForMessageAsync(m => m.Content.Contains("Yes", StringComparison.InvariantCultureIgnoreCase) || m.Content.Contains("No", StringComparison.InvariantCultureIgnoreCase), TimeSpan.FromSeconds(10));
+
+            if (message.Message.Content.Equals("Yes", StringComparison.InvariantCultureIgnoreCase))
+            {
+                _turnipRepository.DeleteAllTurnipTableEntries();
+                response = "Successfully deleted everything.";
+            }
+            else
+            {
+                response = "Nothing has been deleted.";
             }
 
             await ctx.RespondAsync(response);
