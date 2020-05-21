@@ -11,38 +11,37 @@ namespace TurnipBot.Services
     public class TurnipCalculationService
     {
         private readonly TurnipRepository _turnipRepository;
-        private readonly int _weekNum;
+        private int _weekNum;
 
 
         public TurnipCalculationService()
         {
             _turnipRepository = new TurnipRepository();
-            _weekNum = CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(DateTime.Now, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Sunday);
+            EnsureTableIsClear();
         }
-
-        public bool AddOrUpdateTurnipPriceToDB(int id, string name, int price)
+        
+        public bool AddOrUpdateSellPriceInDB(int id, string name, int price)
         {
-            List<TurnipInfo> infoList = _turnipRepository.GetAllTurnipsTableEntries();
+            EnsureTableIsClear();
+            TurnipInfo turnipInfo = GetTurnipEntry(id);
+            DayOfWeek newDow = DateTime.Now.DayOfWeek;
+            bool newMorning = DateTime.Now.Hour < 12 ? true : false;
 
-            TurnipInfo turnipInfo = infoList.FirstOrDefault(i => i.Id == id);
-
-            if (turnipInfo != null)
+            if (turnipInfo != null) //This entry must be updated
             {
-                if (turnipInfo.WeekNum != _weekNum || DateTime.Now.DayOfWeek == DayOfWeek.Sunday) //New week has started and we must clean out the table
-                {
-                    _turnipRepository.DeleteAllTurnipTableEntries(_weekNum - 1); //Delete entries from last week
-                }
-                else
-                {
-                    if (GetSellPeriodFromDate() != GetSellPeriodFromSellPrices(turnipInfo.SellPrices)) //New sell period entry
-                    {
+                int day = turnipInfo.SellPrices.Count() / 2;
+                bool currentMorning = turnipInfo.SellPrices.Count() % 2 != 0;
 
-                    }
-                    else //Update sell period entry
-                    {
-
-                    }
+                if ((int)newDow == day && newMorning == currentMorning) //Update sell price
+                {
+                    turnipInfo.SellPrices[turnipInfo.SellPrices.Count - 1] = price;
                 }
+                else //Insert new price
+                {
+                    turnipInfo.SellPrices.Add(price);
+                }
+
+                _turnipRepository.UpdateTurnipTableEntry(turnipInfo);
             }
             else
             {
@@ -52,11 +51,10 @@ namespace TurnipBot.Services
             return true;
         }
 
-        public bool AddBuyPriceToTable(int id, string name, int buyPrice)
+        public bool AddOrUpdateBuyPriceInTable(int id, string name, int buyPrice)
         {
-            List<TurnipInfo> infoList = _turnipRepository.GetAllTurnipsTableEntries();
-
-            TurnipInfo turnipInfo = infoList.FirstOrDefault(i => i.Id == id);
+            EnsureTableIsClear();
+            TurnipInfo turnipInfo = GetTurnipEntry(id);
 
             if (turnipInfo != null) //This entry must be updated
             {
@@ -78,13 +76,27 @@ namespace TurnipBot.Services
             return true;
         }
 
-        public bool AddFirstTimeToRecord(int id, bool firstTime)
+        public bool AddFirstTimeToRecord(int id, string name, bool firstTime)
         {
             try
             {
-                TurnipInfo info = _turnipRepository.GetTurnipTableEntry(id);
-                info.FirstTime = firstTime;
-                _turnipRepository.UpdateTurnipTableEntry(info);
+                EnsureTableIsClear();
+                TurnipInfo turnipInfo = _turnipRepository.GetTurnipTableEntry(id);
+                if (turnipInfo != null)
+                {
+                    turnipInfo.FirstTime = firstTime;
+                    _turnipRepository.UpdateTurnipTableEntry(turnipInfo);
+                }
+                else
+                {
+                    _turnipRepository.InsertIntoTurnipsTable(new TurnipInfo()
+                    {
+                        WeekNum = _weekNum,
+                        Id = id,
+                        Name = name,
+                        FirstTime = firstTime
+                    });
+                }
 
                 return true;
             }
@@ -98,6 +110,7 @@ namespace TurnipBot.Services
         {
             try
             {
+                EnsureTableIsClear();
                 TurnipInfo info = _turnipRepository.GetTurnipTableEntry(id);
                 info.Pattern = pattern;
                 _turnipRepository.UpdateTurnipTableEntry(info);
@@ -109,28 +122,24 @@ namespace TurnipBot.Services
                 return false;
             }
         }
-
-        private (DayOfWeek, bool) GetSellPeriodFromDate(DateTime? dateTime = null)
+        
+        private TurnipInfo GetTurnipEntry(int id)
         {
-            if (dateTime == null)
-                dateTime = DateTime.Now;
-
-            bool isAM = true;
-            if (dateTime?.Hour >= 12)
-                isAM = false;
-
-            return ((DayOfWeek)dateTime?.DayOfWeek, isAM);
+            return _turnipRepository.GetTurnipTableEntry(id);
         }
 
-        private (DayOfWeek, bool) GetSellPeriodFromSellPrices(List<int> sellPrices)
+        private void UpdateWeekNum()
         {
-            int pricesCount = sellPrices.Count;
+            _weekNum = CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(DateTime.Now, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Sunday);
+        }
 
-            DayOfWeek dayOfWeek = (DayOfWeek)((pricesCount / 2) + (pricesCount % 2));
-
-            bool isAM = (pricesCount % 2 == 1);
-
-            return (dayOfWeek, isAM);
+        private void EnsureTableIsClear()
+        {
+            UpdateWeekNum();
+            if (_turnipRepository.GetAllTurnipsTableEntries().First().WeekNum != _weekNum) //New week has started and we must clean out the table
+            {
+                _turnipRepository.DeleteAllTurnipTableEntries(); //Delete all entries for a new week
+            }
         }
     }
 }

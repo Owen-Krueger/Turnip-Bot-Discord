@@ -70,7 +70,7 @@ namespace TurnipBot.DataAccess
             List<TurnipInfo> turnipInfos = new List<TurnipInfo>();
             try
             {
-                string sqlString = "SELECT WeekNum, Id, Name, BuyPrice, SellPrices Pattern, FirstTime FROM Turnips";
+                string sqlString = "SELECT WeekNum, Id, Name, BuyPrice, SellPrices, Pattern, FirstTime FROM Turnips";
                 using SqliteConnection connection = new SqliteConnection(_connectionString);
                 connection.Open();
                 SqliteCommand command = connection.CreateCommand();
@@ -95,7 +95,7 @@ namespace TurnipBot.DataAccess
             TurnipInfo turnipInfo = new TurnipInfo();
             try
             {
-                string sqlString = "SELECT WeekNum, Id, Name, BuyPrice, SellPrices Pattern, FirstTime FROM Turnips WHERE Id = @Id";
+                string sqlString = "SELECT WeekNum, Id, Name, BuyPrice, SellPrices, Pattern, FirstTime FROM Turnips WHERE Id = @Id";
                 using SqliteConnection connection = new SqliteConnection(_connectionString);
                 connection.Open();
                 SqliteCommand command = connection.CreateCommand();
@@ -116,7 +116,7 @@ namespace TurnipBot.DataAccess
             return turnipInfo;
         }
 
-        public void DeleteAllTurnipTableEntries(int weekNum)
+        public void DeleteAllTurnipTableEntriesForWeek(int weekNum)
         {
             try
             {
@@ -126,6 +126,24 @@ namespace TurnipBot.DataAccess
                 SqliteCommand command = connection.CreateCommand();
                 command.CommandText = sqlString;
                 command.Parameters.AddWithValue("@WeekNum", weekNum);
+                command.ExecuteNonQuery();
+                connection.Close();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+            }
+        }
+
+        public void DeleteAllTurnipTableEntries()
+        {
+            try
+            {
+                string sqlString = "DELETE FROM Turnips";
+                using SqliteConnection connection = new SqliteConnection(_connectionString);
+                connection.Open();
+                SqliteCommand command = connection.CreateCommand();
+                command.CommandText = sqlString;
                 command.ExecuteNonQuery();
                 connection.Close();
             }

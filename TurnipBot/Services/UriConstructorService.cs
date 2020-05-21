@@ -9,15 +9,15 @@ namespace TurnipBot.Services
     {
         private static string _baseUrl = "https://turnipprophet.io/?prices="; //Url goes ...?prices=100.97.85...
 
-        public static string GenerateTurnipUrl(TurnipInfo info, bool firstTime = false)
+        public static string GenerateTurnipUrl(TurnipInfo turnipInfo)
         {
-            string response = $"{_baseUrl}{info.BuyPrice}.{string.Join('.', info.SellPrices)}";
+            string response = $"{_baseUrl}{turnipInfo.BuyPrice}.{turnipInfo.SellPricesUrlString()}";
 
-            if (firstTime)
+            if (turnipInfo.FirstTime)
                 response += "&first=true";
 
-            if (info.Pattern != PatternEnum.Unknown)
-                response += $"&pattern={(int)info.Pattern}";
+            if (turnipInfo.Pattern != PatternEnum.Unknown)
+                response += $"&pattern={(int)turnipInfo.Pattern}";
 
             return response;
         }

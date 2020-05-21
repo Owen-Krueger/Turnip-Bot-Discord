@@ -16,7 +16,7 @@ namespace TurnipBot.Models
                 Id = Convert.ToInt32(record["Id"].ToString()),
                 Name = record["Name"].ToString(),
                 BuyPrice = Convert.ToInt32(record["BuyPrice"].ToString()),
-                FirstTime = Convert.ToBoolean(record["FirstTime"].ToString())
+                FirstTime = Convert.ToBoolean(Convert.ToInt16(record["FirstTime"].ToString()))
             };
 
             if (Enum.TryParse(record["Pattern"].ToString(), out PatternEnum pattern))
@@ -24,22 +24,29 @@ namespace TurnipBot.Models
             else
                 turnipInfo.Pattern = PatternEnum.Unknown;
 
-            List<string> sellPricesString = record["SellPrices"].ToString().Split(',').ToList();
-            List<int> sellPrices = new List<int>();
 
-            foreach (string sellPrice in sellPricesString)
+            try
             {
-                try
+                if (record["SellPrices"].ToString().Length > 0)
                 {
-                    sellPrices.Add(Convert.ToInt32(sellPrice));
-                }
-                catch (Exception e)
-                {
-                    Console.WriteLine(e.Message);
+                    string sellPricesString = record["SellPrices"].ToString();
+                    foreach (string sellPrice in sellPricesString.Split(',').ToList())
+                    {
+                        try
+                        {
+                            if (sellPrice == "")
+                                turnipInfo.SellPrices.Add(-1);
+                            else
+                                turnipInfo.SellPrices.Add(Convert.ToInt32(sellPrice));
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine(e.Message);
+                        }
+                    }                
                 }
             }
-
-            turnipInfo.SellPrices = sellPrices;
+            catch (Exception e) { Console.WriteLine(e.Message); }
 
             return turnipInfo;
         }
@@ -60,7 +67,16 @@ namespace TurnipBot.Models
 
         public string SellPricesString()
         {
-            return string.Join(',', SellPrices);
+            string sellPriceString = string.Join(',', SellPrices).Replace("-1","");
+
+            return sellPriceString;
+        }
+
+        public string SellPricesUrlString()
+        {
+            string sellPriceString = string.Join('.', SellPrices).Replace("-1", "");
+
+            return sellPriceString;
         }
     }
 }
