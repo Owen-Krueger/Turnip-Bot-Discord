@@ -46,7 +46,8 @@ namespace TurnipBot
                 _discord = new DiscordClient(new DiscordConfiguration
                 {
                     Token = _config.GetValue<string>("discord:token"),
-                    TokenType = TokenType.Bot
+                    TokenType = TokenType.Bot,
+                    AutoReconnect = true
                 });
 
                 // Create the interactivity module(I'll show you how to use this later on)
@@ -58,27 +59,17 @@ namespace TurnipBot
                 });
 
                 // Build dependancies and then create the commands module.
-                var deps = BuildDeps();
                 _commands = _discord.UseCommandsNext(new CommandsNextConfiguration
                 {
                     StringPrefix = _config.GetValue<string>("discord:CommandPrefix"), // Load the command prefix(what comes before the command, eg "!" or "/") from our config file
-                    Dependencies = deps // Pass the dependancies
+                    EnableDms = true
                 });
 
                 // TODO: Add command loading!
                 Console.WriteLine("[info] Loading command modules..");
 
-                var type = typeof(IModule); // Get the type of our interface
-                var types = AppDomain.CurrentDomain.GetAssemblies() // Get the assemblies associated with our project
-                    .SelectMany(s => s.GetTypes()) // Get all the types
-                    .Where(p => type.IsAssignableFrom(p) && !p.IsInterface); // Filter to find any type that can be assigned to an IModule
-
-                var typeList = types as Type[] ?? types.ToArray(); // Convert to an array
-                foreach (var t in typeList)
-                    _commands.RegisterCommands(t); // Loop through the list and register each command module with CommandsNext
-
-                Console.WriteLine($"[info] Loaded {typeList.Count()} modules.");
-
+                _commands.RegisterCommands<TurnipCommands>();
+                _commands.RegisterCommands<SellCommands>();
 
                 RunAsync(args).Wait();
             }

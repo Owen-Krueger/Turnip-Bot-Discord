@@ -11,7 +11,7 @@ using TurnipBot.Services;
 
 namespace TurnipBot.Commands
 {
-    public class TurnipCommands : IModule
+    public class TurnipCommands
     {
         private readonly TurnipCalculationService _turnipCalculationService;
         private readonly TurnipRepository _turnipRepository;
@@ -22,7 +22,7 @@ namespace TurnipBot.Commands
             _turnipRepository = new TurnipRepository();
         }
 
-        [Command("prices"), Aliases("urls", "list prices", "predictions", "all prices", "all predictions", "list predictions")]
+        [Command("prices"), Aliases("urls", "list_prices", "predictions", "all_prices", "all_predictions", "list_predictions")]
         [Description("Get current turnip predictions for this week")]
         public async Task Prices(CommandContext ctx)
         {
@@ -38,44 +38,7 @@ namespace TurnipBot.Commands
             await ctx.RespondAsync(sb.ToString());
         }
 
-        [Command("sell"), Aliases("sell price", "new sell price", "update sell price", "change sell price")]
-        [Description("Add sell price for right now")]
-        public async Task Sell(CommandContext ctx)
-        {
-            await ctx.TriggerTypingAsync();
-            string response;
-            int price;
-            string periodOfDay = DateTime.Now.Hour < 12 ? "morning" : "afternoon";
-
-            try
-            {
-                if (ctx.RawArgumentString == null)
-                {
-                    response = "You must enter a price after the command. Try '/sell 1' or something.";
-                }
-                else
-                {
-                    price = Convert.ToInt32(ctx.RawArgumentString);
-
-                    if (_turnipCalculationService.AddOrUpdateSellPriceInDB(Convert.ToInt32(ctx.Member.Discriminator), ctx.Member.Username, price))
-                    {
-                        response = $"Recorded {ctx.Member.Username}'s sell price for {DateTime.Now.DayOfWeek} {periodOfDay} as {price} bells.";
-                    }
-                    else
-                    {
-                        response = "Couldn't record price. It's probably Owen's fault.";
-                    }
-                }
-            }
-            catch
-            {
-                response = "Crashed parsing your price. What on earth did you do??";
-            }
-
-            await ctx.RespondAsync(response);
-        }
-
-        [Command("buy"), Aliases("buy price", "add buy", "add buy price", "update buy price", "update buy", "change buy", "change buy price")]
+        [Command("buy"), Aliases("buy_price", "add_buy", "add_buy_price", "update_buy_price", "update_buy", "change_buy", "change_buy_price")]
         [Description("Adds or updates the turnip purchasing price from Sunday")]
         public async Task BuyPrice(CommandContext ctx)
         {
@@ -96,7 +59,7 @@ namespace TurnipBot.Commands
             await ctx.RespondAsync(response);
         }
 
-        [Command("pattern"), Aliases("add pattern", "update pattern", "change pattern")]
+        [Command("pattern"), Aliases("add_pattern", "update_pattern", "change_pattern")]
         [Description("Set the pattern from last week's turnip sales. Defaults to 'Unknown'")]
         public async Task Pattern(CommandContext ctx)
         {
@@ -112,7 +75,7 @@ namespace TurnipBot.Commands
                 await ctx.RespondAsync("Pattern not recognized. Values accepted: 'Unknown', 'Decreasing', 'LargeSpike', 'SmallSpike', 'Fluctuating'");
         }
 
-        [Command("first"), Aliases("first flag", "add first", "add first flag", "update first", "update first flag")]
+        [Command("first"), Aliases("first_flag", "add_first", "add_first_flag", "update_first", "update_first_flag")]
         [Description("Add or remove the 'first time' flag for the prediction")]
         public async Task FirstTime(CommandContext ctx)
         {
@@ -133,8 +96,9 @@ namespace TurnipBot.Commands
             await ctx.RespondAsync(response);
         }
 
-        [Command("delete"), Aliases("delete all", "remove", "remove all", "clear", "clear table")]
+        [Command("delete"), Aliases("delete_all", "remove", "remove_all", "clear", "clear_table")]
         [Description("Delete everything from the turnips table")]
+        [Hidden]
         public async Task Delete(CommandContext ctx)
         {
             await ctx.TriggerTypingAsync();
@@ -154,6 +118,61 @@ namespace TurnipBot.Commands
             else
             {
                 response = "Nothing has been deleted.";
+            }
+
+            await ctx.RespondAsync(response);
+        }
+    }
+
+    [Group("sell", CanInvokeWithoutSubcommand = true)]
+    public class SellCommands
+    {
+        private readonly TurnipCalculationService _turnipCalculationService;
+
+        public SellCommands()
+        {
+            _turnipCalculationService = new TurnipCalculationService();
+        }
+
+        public async Task ExecuteGroupAsync(CommandContext ctx, int price)
+        {
+            await ctx.TriggerTypingAsync();
+            string response;
+            string periodOfDay = DateTime.Now.Hour < 12 ? "morning" : "afternoon";
+
+            try
+            {
+                if (_turnipCalculationService.AddOrUpdateSellPriceInDB(Convert.ToInt32(ctx.Member.Discriminator), ctx.Member.Username, price))
+                {
+                    response = $"Recorded {ctx.Member.Username}'s sell price for {DateTime.Now.DayOfWeek} {periodOfDay} as {price} bells.";
+                }
+                else
+                {
+                    response = "Couldn't record price. It's probably Owen's fault.";
+                }
+            }
+            catch
+            {
+                response = "Crashed parsing your price. What on earth did you do??";
+            }
+
+            await ctx.RespondAsync(response);
+        }
+
+        [Command("sell-date")]
+        public async Task SellWithDate(CommandContext ctx, int price, DateTime dateTime)
+        {
+            await ctx.TriggerTypingAsync();
+            string response;
+
+            string periodOfDay = dateTime.Hour < 12 ? "morning" : "afternoon";
+            if (_turnipCalculationService.AddOrUpdateSellPriceInDB(Convert.ToInt32(ctx.Member.Discriminator), ctx.Member.Username, price))
+            {
+                response = $"Recorded {ctx.Member.Username}'s sell price for {DateTime.Now.DayOfWeek} {periodOfDay} as {price} bells.";
+            }
+            else
+            {
+                response = "Couldn't record price. It's probably Owen's fault.";
             }
 
             await ctx.RespondAsync(response);
