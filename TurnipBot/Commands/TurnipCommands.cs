@@ -22,7 +22,7 @@ namespace TurnipBot.Commands
             _turnipRepository = new TurnipRepository();
         }
 
-        [Command("prices")]
+        [Command("prices"), Aliases("urls", "list prices", "predictions", "all prices", "all predictions", "list predictions")]
         [Description("Get current turnip predictions for this week")]
         public async Task Prices(CommandContext ctx)
         {
@@ -38,7 +38,7 @@ namespace TurnipBot.Commands
             await ctx.RespondAsync(sb.ToString());
         }
 
-        [Command("sell")]
+        [Command("sell"), Aliases("sell price", "new sell price", "update sell price", "change sell price")]
         [Description("Add sell price for right now")]
         public async Task Sell(CommandContext ctx)
         {
@@ -75,7 +75,7 @@ namespace TurnipBot.Commands
             await ctx.RespondAsync(response);
         }
 
-        [Command("buy")]
+        [Command("buy"), Aliases("buy price", "add buy", "add buy price", "update buy price", "update buy", "change buy", "change buy price")]
         [Description("Adds or updates the turnip purchasing price from Sunday")]
         public async Task BuyPrice(CommandContext ctx)
         {
@@ -96,7 +96,7 @@ namespace TurnipBot.Commands
             await ctx.RespondAsync(response);
         }
 
-        [Command("pattern")]
+        [Command("pattern"), Aliases("add pattern", "update pattern", "change pattern")]
         [Description("Set the pattern from last week's turnip sales. Defaults to 'Unknown'")]
         public async Task Pattern(CommandContext ctx)
         {
@@ -112,7 +112,7 @@ namespace TurnipBot.Commands
                 await ctx.RespondAsync("Pattern not recognized. Values accepted: 'Unknown', 'Decreasing', 'LargeSpike', 'SmallSpike', 'Fluctuating'");
         }
 
-        [Command("first")]
+        [Command("first"), Aliases("first flag", "add first", "add first flag", "update first", "update first flag")]
         [Description("Add or remove the 'first time' flag for the prediction")]
         public async Task FirstTime(CommandContext ctx)
         {
@@ -133,7 +133,7 @@ namespace TurnipBot.Commands
             await ctx.RespondAsync(response);
         }
 
-        [Command("delete")]
+        [Command("delete"), Aliases("delete all", "remove", "remove all", "clear", "clear table")]
         [Description("Delete everything from the turnips table")]
         public async Task Delete(CommandContext ctx)
         {
