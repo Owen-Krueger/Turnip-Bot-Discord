@@ -340,4 +340,4 @@ ASALocalRun/
 healthchecksdb
 
 # Bot-specific files
-config.json
+TurnipBot/config.json
