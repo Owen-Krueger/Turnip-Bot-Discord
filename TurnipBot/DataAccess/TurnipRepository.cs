@@ -92,7 +92,7 @@ namespace TurnipBot.DataAccess
 
         public TurnipInfo GetTurnipTableEntry(int id)
         {
-            TurnipInfo turnipInfo = new TurnipInfo();
+            TurnipInfo turnipInfo = null;
             try
             {
                 string sqlString = "SELECT WeekNum, Id, Name, BuyPrice, SellPrices, Pattern, FirstTime FROM Turnips WHERE Id = @Id";

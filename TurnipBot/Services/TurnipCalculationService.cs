@@ -20,33 +20,51 @@ namespace TurnipBot.Services
             EnsureTableIsClear();
         }
         
-        public bool AddOrUpdateSellPriceInDB(int id, string name, int price)
+        public bool AddOrUpdateSellPriceInDB(int id, string name, int price, DateTime? date = null)
         {
             EnsureTableIsClear();
+            if (date == null)
+                date = DateTime.Now;
+            
             TurnipInfo turnipInfo = GetTurnipEntry(id);
-            DayOfWeek newDow = DateTime.Now.DayOfWeek;
-            bool newMorning = DateTime.Now.Hour < 12 ? true : false;
 
-            if (turnipInfo != null) //This entry must be updated
+            if (turnipInfo == null) //Need to create a new Turnip Entry
             {
-                int day = turnipInfo.SellPrices.Count() / 2;
-                bool currentMorning = turnipInfo.SellPrices.Count() % 2 != 0;
-
-                if ((int)newDow == day && newMorning == currentMorning) //Update sell price
+                turnipInfo = new TurnipInfo()
                 {
-                    turnipInfo.SellPrices[turnipInfo.SellPrices.Count - 1] = price;
-                }
-                else //Insert new price
-                {
-                    turnipInfo.SellPrices.Add(price);
-                }
+                    Id = id,
+                    Name = name,
+                    WeekNum = _weekNum,
+                    BuyPrice = -1 //Default value
+                };
 
-                _turnipRepository.UpdateTurnipTableEntry(turnipInfo);
+                _turnipRepository.InsertIntoTurnipsTable(turnipInfo);
             }
-            else
+
+            //Get the count of sell prices and what count we expect to be at
+            int sellPricesCount = turnipInfo.SellPrices.Count();
+            int countAsOfDate = (int)date?.DayOfWeek * 2;
+            countAsOfDate += date?.Hour < 12 ? -1 : 0;
+
+            if (sellPricesCount == countAsOfDate) //Overwrite
             {
-                
+                turnipInfo.SellPrices[turnipInfo.SellPrices.Count - 1] = price;
             }
+            else if (sellPricesCount < countAsOfDate) //Add blank prices in
+            {
+                for (int counter = sellPricesCount; counter < countAsOfDate - 1; counter++)
+                {
+                    turnipInfo.SellPrices.Add(-1);
+                }
+
+                turnipInfo.SellPrices.Add(price);
+            }
+            else if (sellPricesCount > countAsOfDate) //Overwrite the desired sell price
+            {
+                turnipInfo.SellPrices[countAsOfDate - 1] = price;
+            }
+
+            _turnipRepository.UpdateTurnipTableEntry(turnipInfo);
 
             return true;
         }

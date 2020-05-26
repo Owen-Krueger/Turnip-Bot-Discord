@@ -65,6 +65,11 @@ namespace TurnipBot.Models
 
         public bool FirstTime { get; set; } = false;
 
+        public string BuyPriceUrlString()
+        {
+            return BuyPrice == -1 ? "" : BuyPrice.ToString();
+        }
+
         public string SellPricesString()
         {
             string sellPriceString = string.Join(',', SellPrices).Replace("-1","");

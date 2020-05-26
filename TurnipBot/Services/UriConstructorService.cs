@@ -11,7 +11,7 @@ namespace TurnipBot.Services
 
         public static string GenerateTurnipUrl(TurnipInfo turnipInfo)
         {
-            string response = $"{_baseUrl}{turnipInfo.BuyPrice}.{turnipInfo.SellPricesUrlString()}";
+            string response = $"{_baseUrl}{turnipInfo.BuyPriceUrlString()}.{turnipInfo.SellPricesUrlString()}";
 
             if (turnipInfo.FirstTime)
                 response += "&first=true";

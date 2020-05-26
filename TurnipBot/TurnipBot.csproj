@@ -19,5 +19,5 @@
   <ItemGroup>
     <None Update="config.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
-
+  
 </Project>
