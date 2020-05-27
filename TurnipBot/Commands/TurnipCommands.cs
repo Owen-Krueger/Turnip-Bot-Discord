@@ -181,7 +181,7 @@ namespace TurnipBot.Commands
             bool success;
             string response;
 
-            DateTime dateOfUpdate = DateTimeOffsetter.ToUSCentralTime(DateTime.Today).DateTime;
+            DateTime dateOfUpdate = DateTime.Today;
             success = Enum.TryParse(dayOfWeekString, true, out DayOfWeek dayOfWeek);
             if (success)
             {
