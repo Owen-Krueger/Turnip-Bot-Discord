@@ -3,6 +3,7 @@ using DSharpPlus.CommandsNext.Attributes;
 using DSharpPlus.Interactivity;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TurnipBot.DataAccess;
@@ -30,9 +31,17 @@ namespace TurnipBot.Commands
 
             List<TurnipInfo> entries = _turnipRepository.GetAllTurnipsTableEntries();
             StringBuilder sb = new StringBuilder();
-            foreach (TurnipInfo entry in entries)
+
+            if (entries.Count == 0)
             {
-                sb.Append($"{entry.Name}: {UriConstructorService.GenerateTurnipUrl(entry)}");
+                sb.AppendLine("Couldn't find any prices. Get on it, nerds!");
+            }
+            else
+            {
+                foreach (TurnipInfo entry in entries)
+                {
+                    sb.AppendLine($"{entry.Name}: {UriConstructorService.GenerateTurnipUrl(entry)}");
+                }
             }
 
             await ctx.RespondAsync(sb.ToString());
@@ -159,20 +168,53 @@ namespace TurnipBot.Commands
             await ctx.RespondAsync(response);
         }
 
-        [Command("sell-date")]
-        public async Task SellWithDate(CommandContext ctx, int price, DateTime dateTime)
+        [Command("date"), Aliases("day", "past")]
+        public async Task SellWithDate(CommandContext ctx, int price, string dayOfWeekString, string timeOfDayString)
         {
             await ctx.TriggerTypingAsync();
+            string[] morningOptions = new string[] { "morning", "m", "morn" };
+            string[] eveningOptions = new string[] { "evening", "e", "eve", "afternoon", "a", "after" };
+            bool success;
             string response;
 
-            string periodOfDay = dateTime.Hour < 12 ? "morning" : "afternoon";
-            if (_turnipCalculationService.AddOrUpdateSellPriceInDB(Convert.ToInt32(ctx.Member.Discriminator), ctx.Member.Username, price))
+            DateTime dateOfUpdate = DateTime.Today;
+            success = Enum.TryParse(dayOfWeekString, true, out DayOfWeek dayOfWeek);
+            if (success)
             {
-                response = $"Recorded {ctx.Member.Username}'s sell price for {DateTime.Now.DayOfWeek} {periodOfDay} as {price} bells.";
+                if (dayOfWeek > DateTime.Now.DayOfWeek)
+                {
+                    success = false;
+                }
+                else 
+                {
+                    while (dateOfUpdate.DayOfWeek != dayOfWeek) //Keep going back in days until we have the correct day of week
+                    {
+                        dateOfUpdate = dateOfUpdate.AddDays(-1);
+                    }
+                }
+            }
+
+            if (success && morningOptions.Any(o => o.Equals(timeOfDayString, StringComparison.InvariantCultureIgnoreCase))) //Morning update
+            {
+                success = _turnipCalculationService.AddOrUpdateSellPriceInDB(Convert.ToInt32(ctx.Member.Discriminator), ctx.Member.Username, price, dateOfUpdate);
+            }
+            else if (success && eveningOptions.Any(o => o.Equals(timeOfDayString, StringComparison.InvariantCultureIgnoreCase))) //Evening update
+            {
+                dateOfUpdate = dateOfUpdate.AddHours(14);
+                success = _turnipCalculationService.AddOrUpdateSellPriceInDB(Convert.ToInt32(ctx.Member.Discriminator), ctx.Member.Username, price, dateOfUpdate);
             }
             else
             {
-                response = "Couldn't record price. It's probably Owen's fault.";
+                success = false;
+            }
+
+            if (success)
+            {
+                response = $"Successfully updated {dayOfWeek.ToString()} {timeOfDayString}'s price to {price} bells.";
+            }
+            else
+            {
+                response = "There was an issue updating the sell price. Try again or blame Owen.";
             }
 
             await ctx.RespondAsync(response);
