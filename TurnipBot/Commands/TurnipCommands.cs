@@ -185,7 +185,7 @@ namespace TurnipBot.Commands
             success = Enum.TryParse(dayOfWeekString, true, out DayOfWeek dayOfWeek);
             if (success)
             {
-                if (dayOfWeek > DateTimeOffsetter.ToUSCentralTime(DateTime.Now).DateTime.DayOfWeek)
+                if (dayOfWeek > dateOfUpdate.DayOfWeek)
                 {
                     success = false;
                 }
@@ -200,6 +200,7 @@ namespace TurnipBot.Commands
 
             if (success && morningOptions.Any(o => o.Equals(timeOfDayString, StringComparison.InvariantCultureIgnoreCase))) //Morning update
             {
+                dateOfUpdate = dateOfUpdate.AddHours(1); //Just to make sure the morning updates properly
                 success = _turnipCalculationService.AddOrUpdateSellPriceInDB(Convert.ToInt32(ctx.Member.Discriminator), ctx.Member.Nickname, price, dateOfUpdate);
             }
             else if (success && eveningOptions.Any(o => o.Equals(timeOfDayString, StringComparison.InvariantCultureIgnoreCase))) //Evening update
