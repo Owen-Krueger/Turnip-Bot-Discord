@@ -20,11 +20,11 @@ namespace TurnipBot.Services
             EnsureTableIsClear();
         }
         
-        public bool AddOrUpdateSellPriceInDB(int id, string name, int price, DateTimeOffset? date = null)
+        public bool AddOrUpdateSellPriceInDB(int id, string name, int price, DateTime? date = null)
         {
             EnsureTableIsClear();
             if (date == null)
-                date = DateTimeOffsetter.ToUSCentralTime(DateTimeOffset.Now);
+                date = DateTimeOffsetter.ToUSCentralTime(DateTime.Now).DateTime;
             
             TurnipInfo turnipInfo = GetTurnipEntry(id);
 
@@ -161,7 +161,7 @@ namespace TurnipBot.Services
 
         private void UpdateWeekNum()
         {
-            _weekNum = CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(DateTimeOffsetter.ToUSCentralTime(DateTimeOffset.Now).DateTime, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Sunday);
+            _weekNum = CultureInfo.CurrentCulture.Calendar.GetWeekOfYear(DateTimeOffsetter.ToUSCentralTime(DateTime.Now).DateTime, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Sunday);
         }
 
         private void EnsureTableIsClear()

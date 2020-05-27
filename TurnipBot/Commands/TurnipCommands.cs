@@ -150,7 +150,7 @@ namespace TurnipBot.Commands
         {
             await ctx.TriggerTypingAsync();
             string response;
-            DateTimeOffset currentDate = DateTimeOffsetter.ToUSCentralTime(DateTimeOffset.Now);
+            DateTime currentDate = DateTimeOffsetter.ToUSCentralTime(DateTimeOffset.Now).DateTime;
             string periodOfDay = currentDate.Hour < 12 ? "morning" : "afternoon";
 
             try
@@ -181,11 +181,11 @@ namespace TurnipBot.Commands
             bool success;
             string response;
 
-            DateTimeOffset dateOfUpdate = DateTimeOffsetter.ToUSCentralTime(DateTime.Today);
+            DateTime dateOfUpdate = DateTimeOffsetter.ToUSCentralTime(DateTime.Today).DateTime;
             success = Enum.TryParse(dayOfWeekString, true, out DayOfWeek dayOfWeek);
             if (success)
             {
-                if (dayOfWeek > DateTimeOffsetter.ToUSCentralTime(DateTimeOffset.Now).DayOfWeek)
+                if (dayOfWeek > DateTimeOffsetter.ToUSCentralTime(DateTime.Now).DateTime.DayOfWeek)
                 {
                     success = false;
                 }
