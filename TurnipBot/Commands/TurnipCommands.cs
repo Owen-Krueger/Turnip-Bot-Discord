@@ -23,7 +23,7 @@ namespace TurnipBot.Commands
             _turnipRepository = new TurnipRepository();
         }
 
-        [Command("prices"), Aliases("urls", "list_prices", "predictions", "all_prices", "all_predictions", "list_predictions")]
+        [Command("prices"), Aliases("urls", "list", "list_prices", "predictions", "all_prices", "all_predictions", "list_predictions")]
         [Description("Get current turnip predictions for this week")]
         public async Task Prices(CommandContext ctx)
         {
