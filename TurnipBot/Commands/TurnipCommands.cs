@@ -150,7 +150,7 @@ namespace TurnipBot.Commands
         {
             await ctx.TriggerTypingAsync();
             string response;
-            DateTime currentDate = DateTimeOffsetter.ToUSCentralTime(DateTimeOffset.Now).DateTime;
+            DateTime currentDate = DateTimeOffsetter.ToUSCentralTime(DateTime.Now).DateTime;
             string periodOfDay = currentDate.Hour < 12 ? "morning" : "afternoon";
 
             try
