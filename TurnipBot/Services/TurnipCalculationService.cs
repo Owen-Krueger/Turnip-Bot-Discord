@@ -100,12 +100,12 @@ namespace TurnipBot.Services
             {
                 EnsureTableIsClear();
                 TurnipInfo turnipInfo = _turnipRepository.GetTurnipTableEntry(id);
-                if (turnipInfo != null)
+                if (turnipInfo != null) //Update
                 {
                     turnipInfo.FirstTime = firstTime;
                     _turnipRepository.UpdateTurnipTableEntry(turnipInfo);
                 }
-                else
+                else //Insert
                 {
                     _turnipRepository.InsertIntoTurnipsTable(new TurnipInfo()
                     {
@@ -124,14 +124,27 @@ namespace TurnipBot.Services
             }
         }
 
-        public bool AddPatternToRecord(int id, PatternEnum pattern)
+        public bool AddPatternToRecord(int id, string name, PatternEnum pattern)
         {
             try
             {
                 EnsureTableIsClear();
-                TurnipInfo info = _turnipRepository.GetTurnipTableEntry(id);
-                info.Pattern = pattern;
-                _turnipRepository.UpdateTurnipTableEntry(info);
+                TurnipInfo turnipInfo = _turnipRepository.GetTurnipTableEntry(id);
+                if (turnipInfo != null) //Update
+                {
+                    turnipInfo.Pattern = pattern;
+                    _turnipRepository.UpdateTurnipTableEntry(turnipInfo);
+                }
+                else //Insert
+                {
+                    _turnipRepository.InsertIntoTurnipsTable(new TurnipInfo()
+                    {
+                        WeekNum = _weekNum,
+                        Id = id,
+                        Name = name,
+                        Pattern = pattern
+                    });
+                }
 
                 return true;
             }
