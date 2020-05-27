@@ -150,13 +150,14 @@ namespace TurnipBot.Commands
         {
             await ctx.TriggerTypingAsync();
             string response;
-            string periodOfDay = DateTime.Now.Hour < 12 ? "morning" : "afternoon";
+            DateTimeOffset currentDate = DateTimeOffsetter.ToUSCentralTime(DateTimeOffset.Now);
+            string periodOfDay = currentDate.Hour < 12 ? "morning" : "afternoon";
 
             try
             {
                 if (_turnipCalculationService.AddOrUpdateSellPriceInDB(Convert.ToInt32(ctx.Member.Discriminator), ctx.Member.Username, price))
                 {
-                    response = $"Recorded {ctx.Member.Username}'s sell price for {DateTime.Now.DayOfWeek} {periodOfDay} as {price} bells.";
+                    response = $"Recorded {ctx.Member.Username}'s sell price for {currentDate.DayOfWeek} {periodOfDay} as {price} bells.";
                 }
                 else
                 {
@@ -180,11 +181,11 @@ namespace TurnipBot.Commands
             bool success;
             string response;
 
-            DateTime dateOfUpdate = DateTime.Today;
+            DateTimeOffset dateOfUpdate = DateTimeOffsetter.ToUSCentralTime(DateTime.Today);
             success = Enum.TryParse(dayOfWeekString, true, out DayOfWeek dayOfWeek);
             if (success)
             {
-                if (dayOfWeek > DateTime.Now.DayOfWeek)
+                if (dayOfWeek > DateTimeOffsetter.ToUSCentralTime(DateTimeOffset.Now).DayOfWeek)
                 {
                     success = false;
                 }
