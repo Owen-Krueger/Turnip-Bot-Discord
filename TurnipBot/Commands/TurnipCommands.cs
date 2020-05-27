@@ -70,28 +70,31 @@ namespace TurnipBot.Commands
 
         [Command("pattern"), Aliases("add_pattern", "update_pattern", "change_pattern")]
         [Description("Set the pattern from last week's turnip sales. Defaults to 'Unknown'")]
-        public async Task Pattern(CommandContext ctx)
-        {
-            await ctx.TriggerTypingAsync();
-            bool success;
-
-            if (Enum.TryParse(ctx.RawArgumentString, out PatternEnum pattern))
-                success = _turnipCalculationService.AddPatternToRecord(Convert.ToInt32(ctx.User.Discriminator), pattern);
-            else
-                success = false;
-
-            if (!success)
-                await ctx.RespondAsync("Pattern not recognized. Values accepted: 'Unknown', 'Decreasing', 'LargeSpike', 'SmallSpike', 'Fluctuating'");
-        }
-
-        [Command("first"), Aliases("first_flag", "add_first", "add_first_flag", "update_first", "update_first_flag")]
-        [Description("Add or remove the 'first time' flag for the prediction")]
-        public async Task FirstTime(CommandContext ctx)
+        public async Task Pattern(CommandContext ctx, string patternString)
         {
             await ctx.TriggerTypingAsync();
             string response;
+            bool success;
 
-            bool firstTime = Boolean.TryParse(ctx.RawArgumentString, out firstTime) ? firstTime : true;
+            if (Enum.TryParse(patternString, true, out PatternEnum pattern))
+                success = _turnipCalculationService.AddPatternToRecord(Convert.ToInt32(ctx.User.Discriminator), ctx.Member.Username, pattern);
+            else
+                success = false;
+
+            if (success)
+                response = $"Successfully added pattern {pattern}.";
+            else
+                response = "Pattern not recognized. Values accepted: 'Unknown', 'Decreasing', 'LargeSpike', 'SmallSpike', 'Fluctuating'";
+
+            await ctx.RespondAsync(response);
+        }
+
+        [Command("first"), Aliases("first_flag", "add_first", "add_first_flag", "update_first", "update_first_flag", "firstTime", "first-time")]
+        [Description("Add or remove the 'first time' flag for the prediction")]
+        public async Task FirstTime(CommandContext ctx, bool firstTime)
+        {
+            await ctx.TriggerTypingAsync();
+            string response;
 
             if (_turnipCalculationService.AddFirstTimeToRecord(Convert.ToInt32(ctx.User.Discriminator), ctx.Member.Username, firstTime))
             {
