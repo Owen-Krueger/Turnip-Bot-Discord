@@ -222,5 +222,58 @@ namespace TurnipBot.Commands
 
             await ctx.RespondAsync(response);
         }
+
+        [Command("morning")]
+        public async Task SellMorning(CommandContext ctx, int price)
+        {
+            await ctx.TriggerTypingAsync();
+            string response;
+            DateTime currentDate = DateTimeOffsetter.ToUSCentralTime(DateTime.Now).DateTime;
+
+            try
+            {
+                if (_turnipCalculationService.AddOrUpdateSellPriceInDB(Convert.ToInt32(ctx.Member.Discriminator), ctx.Member.DisplayName, price, currentDate.DayOfWeek, true))
+                {
+                    response = $"Recorded {ctx.Member.DisplayName}'s sell price for {currentDate.DayOfWeek} morning as {price} bells.";
+                }
+                else
+                {
+                    response = "Couldn't record price. It's probably Owen's fault.";
+                }
+            }
+            catch (Exception)
+            {
+                response = "Crashed updating your price. What did you do??";
+            }
+
+            await ctx.RespondAsync(response);
+        }
+
+        [Command("afternoon")]
+        [Aliases("evening")]
+        public async Task SellAfternoon(CommandContext ctx, int price)
+        {
+            await ctx.TriggerTypingAsync();
+            string response;
+            DateTime currentDate = DateTimeOffsetter.ToUSCentralTime(DateTime.Now).DateTime;
+
+            try
+            {
+                if (_turnipCalculationService.AddOrUpdateSellPriceInDB(Convert.ToInt32(ctx.Member.Discriminator), ctx.Member.DisplayName, price, currentDate.DayOfWeek, false))
+                {
+                    response = $"Recorded {ctx.Member.DisplayName}'s sell price for {currentDate.DayOfWeek} afternoon as {price} bells.";
+                }
+                else
+                {
+                    response = "Couldn't record price. It's probably Owen's fault.";
+                }
+            }
+            catch (Exception)
+            {
+                response = "Crashed updating your price. What did you do??";
+            }
+
+            await ctx.RespondAsync(response);
+        }
     }
 }
