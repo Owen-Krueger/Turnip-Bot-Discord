@@ -20,11 +20,15 @@ namespace TurnipBot.Services
             EnsureTableIsClear();
         }
         
-        public bool AddOrUpdateSellPriceInDB(int id, string name, int price, DateTime? date = null)
+        public bool AddOrUpdateSellPriceInDB(int id, string name, int price, DayOfWeek? dayOfWeek = null, bool? isMorning = null)
         {
             EnsureTableIsClear();
-            if (date == null)
-                date = DateTimeOffsetter.ToUSCentralTime(DateTime.Now).DateTime;
+            if (dayOfWeek == null || isMorning == null)
+            {
+                DateTime date = DateTimeOffsetter.ToUSCentralTime(DateTime.Now).DateTime;
+                dayOfWeek = date.DayOfWeek;
+                isMorning = date.Hour < 12;
+            }
             
             TurnipInfo turnipInfo = GetTurnipEntry(id);
 
@@ -43,8 +47,8 @@ namespace TurnipBot.Services
 
             //Get the count of sell prices and what count we expect to be at
             int sellPricesCount = turnipInfo.SellPrices.Count();
-            int countAsOfDate = (int)date?.DayOfWeek * 2;
-            countAsOfDate += date?.Hour < 12 ? -1 : 0;
+            int countAsOfDate = (int)dayOfWeek * 2;
+            countAsOfDate += (bool)isMorning ? -1 : 0;
 
             if (sellPricesCount == countAsOfDate) //Overwrite
             {

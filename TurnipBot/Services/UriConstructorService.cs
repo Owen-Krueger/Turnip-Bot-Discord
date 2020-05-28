@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using TurnipBot.Models;
+﻿using TurnipBot.Models;
 
 namespace TurnipBot.Services
 {

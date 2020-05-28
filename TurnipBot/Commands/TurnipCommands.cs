@@ -56,9 +56,9 @@ namespace TurnipBot.Commands
 
             int price = Convert.ToInt32(ctx.RawArgumentString);
 
-            if (_turnipCalculationService.AddOrUpdateBuyPriceInTable(Convert.ToInt32(ctx.Member.Discriminator), ctx.Member.Nickname, price))
+            if (_turnipCalculationService.AddOrUpdateBuyPriceInTable(Convert.ToInt32(ctx.Member.Discriminator), ctx.Member.DisplayName, price))
             {
-                response = $"Recorded {ctx.Member.Nickname}'s buy price as {price} bells.";
+                response = $"Recorded {ctx.Member.DisplayName}'s buy price as {price} bells.";
             }
             else
             {
@@ -77,7 +77,7 @@ namespace TurnipBot.Commands
             bool success;
 
             if (Enum.TryParse(patternString, true, out PatternEnum pattern))
-                success = _turnipCalculationService.AddPatternToRecord(Convert.ToInt32(ctx.User.Discriminator), ctx.Member.Nickname, pattern);
+                success = _turnipCalculationService.AddPatternToRecord(Convert.ToInt32(ctx.User.Discriminator), ctx.Member.DisplayName, pattern);
             else
                 success = false;
 
@@ -96,9 +96,9 @@ namespace TurnipBot.Commands
             await ctx.TriggerTypingAsync();
             string response;
 
-            if (_turnipCalculationService.AddFirstTimeToRecord(Convert.ToInt32(ctx.User.Discriminator), ctx.Member.Nickname, firstTime))
+            if (_turnipCalculationService.AddFirstTimeToRecord(Convert.ToInt32(ctx.User.Discriminator), ctx.Member.DisplayName, firstTime))
             {
-                response = $"Recorded {ctx.Member.Nickname}'s first time flag as {firstTime}.";
+                response = $"Recorded {ctx.Member.DisplayName}'s first time flag as {firstTime}.";
             }
             else
             {
@@ -155,18 +155,18 @@ namespace TurnipBot.Commands
 
             try
             {
-                if (_turnipCalculationService.AddOrUpdateSellPriceInDB(Convert.ToInt32(ctx.Member.Discriminator), ctx.Member.Nickname, price))
+                if (_turnipCalculationService.AddOrUpdateSellPriceInDB(Convert.ToInt32(ctx.Member.Discriminator), ctx.Member.DisplayName, price))
                 {
-                    response = $"Recorded {ctx.Member.Nickname}'s sell price for {currentDate.DayOfWeek} {periodOfDay} as {price} bells.";
+                    response = $"Recorded {ctx.Member.DisplayName}'s sell price for {currentDate.DayOfWeek} {periodOfDay} as {price} bells.";
                 }
                 else
                 {
                     response = "Couldn't record price. It's probably Owen's fault.";
                 }
             }
-            catch
+            catch (Exception)
             {
-                response = "Crashed parsing your price. What on earth did you do??";
+                response = "Crashed updating your price. What did you do??";
             }
 
             await ctx.RespondAsync(response);
@@ -181,7 +181,7 @@ namespace TurnipBot.Commands
             bool success;
             string response;
 
-            DateTime dateOfUpdate = DateTime.Today;
+            DateTime dateOfUpdate = DateTimeOffsetter.ToUSCentralTime(DateTimeOffset.Now).DateTime;
             success = Enum.TryParse(dayOfWeekString, true, out DayOfWeek dayOfWeek);
             if (success)
             {
@@ -200,13 +200,11 @@ namespace TurnipBot.Commands
 
             if (success && morningOptions.Any(o => o.Equals(timeOfDayString, StringComparison.InvariantCultureIgnoreCase))) //Morning update
             {
-                dateOfUpdate = dateOfUpdate.AddHours(1); //Just to make sure the morning updates properly
-                success = _turnipCalculationService.AddOrUpdateSellPriceInDB(Convert.ToInt32(ctx.Member.Discriminator), ctx.Member.Nickname, price, dateOfUpdate);
+                success = _turnipCalculationService.AddOrUpdateSellPriceInDB(Convert.ToInt32(ctx.Member.Discriminator), ctx.Member.DisplayName, price, dayOfWeek, true);
             }
             else if (success && eveningOptions.Any(o => o.Equals(timeOfDayString, StringComparison.InvariantCultureIgnoreCase))) //Evening update
             {
-                dateOfUpdate = dateOfUpdate.AddHours(14);
-                success = _turnipCalculationService.AddOrUpdateSellPriceInDB(Convert.ToInt32(ctx.Member.Discriminator), ctx.Member.Nickname, price, dateOfUpdate);
+                success = _turnipCalculationService.AddOrUpdateSellPriceInDB(Convert.ToInt32(ctx.Member.Discriminator), ctx.Member.DisplayName, price, dayOfWeek, false);
             }
             else
             {
